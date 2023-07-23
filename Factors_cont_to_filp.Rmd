@@ -1,0 +1,163 @@
+---
+title: "Final Case model_1"
+author: "Saravind"
+date: "2023-04-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data <- read.csv("OUData.csv")
+```
+
+```{r}
+sum(is.na(data))
+sum(data=="NULL")
+data[data=="NULL"] <-NA
+colSums(is.na(data))
+```
+
+
+```{r}
+data <- na.omit(data)
+```
+
+```{r}
+colSums(is.na(data))
+```
+
+```{r}
+data$ObservationRecordKey <- NULL
+data$InitPatientClassAndFirstPostOUClass <- NULL
+```
+
+```{r}
+data$Gender<-as.factor(data$Gender)
+data$DRG01<-as.factor(data$DRG01)
+data$PrimaryInsuranceCategory<- as.factor(data$PrimaryInsuranceCategory)
+```
+
+```{r}
+hist(data$Age)
+```
+
+```{r}
+summary(data)
+```
+```{r}
+
+boxplot(data$OU_LOS_hrs ~ data$Flipped, main = "Distribution of OU_LOS_hrs by Flipped",
+        xlab = "Flipped", ylab = "OU_LOS_hrs")
+
+
+boxplot(data$OU_LOS_hrs ~ data$DRG01, main = "Distribution of OU_LOS_hrs by DRG01",
+        xlab = "DRG01", ylab = "OU_LOS_hrs")
+
+
+hist(data$Age, main = "Distribution of Age", xlab = "Age", ylab = "Frequency", breaks = 20)
+
+
+hist(data$OU_LOS_hrs, main = "Distribution of OU_LOS_hrs", xlab = "OU_LOS_hrs",
+     ylab = "Frequency", breaks = 20)
+
+
+```
+```{r}
+# T-test - mean Age of flipped vs. non-flipped patients
+t.test(data$Age ~ data$Flipped)
+
+# ANOVA -compare mean OU_LOS_hrs across different DRG01 categories
+model_anova <- lm(OU_LOS_hrs ~ DRG01, data = data)
+anova(model_anova)
+
+```
+#p-value for the t-test comparing the mean Age of flipped vs. non-flipped patients is 0.1181, which is greater than the significance level of 0.05. Therefore, we do not reject the null hypothesis of equal means, and we conclude that there is not enough evidence to suggest that the mean Age of flipped patients is different from the mean Age of non-flipped patients.
+
+#ANOVA comparing the mean OU_LOS_hrs across different DRG01 categories is significant, with an F-statistic of 6.0522 and a p-value of 1.132e-09. Therefore, we reject the null hypothesis of equal means and conclude that there is evidence to suggest that the mean OU_LOS_hrs differ across at least some of the DRG01 categories.
+
+
+```{r}
+data$BloodPressureUpper<- as.numeric(data$BloodPressureUpper)
+data$BloodPressureDiff<- as.numeric(data$BloodPressureDiff)
+data$Pulse <- as.numeric(data$Pulse)
+data$PulseOximetry <- as.numeric(data$PulseOximetry)
+data$Respirations <- as.numeric(data$Respirations)
+data$Temperature <- as.numeric(data$Temperature)
+
+```
+
+
+```{r}
+data <- na.omit(data)
+```
+
+
+
+```{r}
+sapply(data,class)
+# load the caret package
+library(caret)
+
+# set the random seed for reproducibility
+set.seed(123)
+
+# create an index for the training and testing sets
+index <- createDataPartition(data$Flipped, p = 0.7, list = FALSE)
+
+# create the training and testing sets
+training_set <- data[index, ]
+testing_set <- data[-index, ]
+```
+
+
+```{r}
+model <- glm(Flipped ~ ., data = training_set, family = binomial())
+summary(model)
+```
+
+
+```{r}
+#stepwise selection
+model1_step <- step(model, direction = "both")
+
+#summary of final model
+summary(model1_step)
+
+```
+
+
+```{r}
+# Extract predicted values for the testing set
+pred <- predict(model1_step, newdata = testing_set, type = "response")
+pred_class <- ifelse(pred > 0.5, 1, 0)
+
+#Accuracy
+accuracy <- mean(pred_class == testing_set$Flipped)
+accuracy
+
+```
+```{r}
+#Confusion matrix
+cm <- table(pred_class, testing_set$Flipped)
+print(cm)
+
+#Recall/sensitivity
+recall <- cm[2, 2] / sum(cm[2, ])
+cat("Recall/Sensitivity: ", round(recall, 2), "\n")
+
+#Specificity
+specificity <- cm[1, 1] / sum(cm[1, ])
+cat("Specificity: ", round(specificity, 2), "\n")
+
+```
+
+
+
+
+
+
+
+

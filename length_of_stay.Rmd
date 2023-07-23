@@ -1,0 +1,112 @@
+---
+title: "final case_Model_2"
+author: "Saravind"
+date: "2023-04-30"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+data <- read.csv("OUData.csv")
+```
+
+```{r}
+sum(is.na(data))
+sum(data=="NULL")
+data[data=="NULL"] <-NA
+colSums(is.na(data))
+```
+```{r}
+data <- na.omit(data)
+```
+
+```{r}
+colSums(is.na(data))
+```
+
+```{r}
+data$ObservationRecordKey <- NULL
+data$InitPatientClassAndFirstPostOUClass <- NULL
+```
+
+```{r}
+summary(data)
+```
+```{r}
+data$Gender<-as.factor(data$Gender)
+data$PrimaryInsuranceCategory<- as.factor(data$PrimaryInsuranceCategory)
+data$DRG01<- as.factor(data$DRG01)
+
+```
+
+```{r}
+data$BloodPressureUpper<- as.numeric(data$BloodPressureUpper)
+data$BloodPressureDiff<- as.numeric(data$BloodPressureDiff)
+data$Pulse <- as.numeric(data$Pulse)
+data$PulseOximetry <- as.numeric(data$PulseOximetry)
+data$Respirations <- as.numeric(data$Respirations)
+data$Temperature <- as.numeric(data$Temperature)
+
+```
+```{r}
+data <- na.omit(data)
+```
+
+
+```{r}
+colSums(is.na(data))
+```
+
+
+
+```{r}
+summary(data)
+```
+
+
+
+```{r}
+# Split the data into training and testing sets
+set.seed(123) # for reproducibility
+train_idx <- sample(nrow(data), size = 0.7 * nrow(data))
+train <- data[train_idx, ]
+test <- data[-train_idx, ]
+
+
+model <- lm(OU_LOS_hrs ~ ., data = train)
+
+
+pred_test <- predict(model, newdata = test)
+
+
+pred_test[which(test$DRG01 == 428)]
+
+```
+
+```{r}
+
+
+
+mean_pred_test <- tapply(pred_test, test$DRG01, mean)
+
+#mean predicted length of stay for each DRG code in the test set
+mean_pred_test
+```
+#Based on the mean expected length of stay, some DRG codes, such as 599 and 780, are associated with longer lengths of stay, indicating that they may be connected with more difficult or severe cases, whereas other codes, such as 798 and 786, have lower predicted lengths of stay. These findings could help in selecting DRG codes that are more important in predicting theduration of stay and may be valuable to healthcare practitioners in resource allocation and treatment planning.
+
+
+```{r}
+# Calculate R-squared value
+summary(model)$r.squared
+
+```
+
+
+
+
+
+
+
