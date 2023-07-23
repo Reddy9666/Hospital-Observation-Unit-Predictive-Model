@@ -1,6 +1,4 @@
-# Optimization-of-Observation-unit-in-a-hospital
-
-## Hospital Observation Unit Predictive Model
+# Hospital Observation Unit Predictive Model
 #### Executive Summary
 This repository contains the code and documentation for a predictive model developed to identify patients who are more likely to be flipped from observation to inpatient status in a hospital's observation unit. Additionally, the model aims to establish which Diagnosis-Related Group (DRG) codes are associated with longer stays and have a high flip ratio. The model utilizes binary classification and logistic regression techniques with patient information as predictors to achieve these objectives.
 
